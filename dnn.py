@@ -96,9 +96,9 @@ def objective(params):
 
                 loss_history.append([epoch + 1, i + 1, running_loss, val_loss])
 
-                relative_error = (val_loss-prev_val_loss)/float(val_loss),
+                relative_error = (val_loss-prev_val_loss)/float(val_loss)
                 print('    relative error: %.10f' %
-                        (relative_error))
+                        (relative_error)),
                 if(relative_error>0.05):
                     over_break_count+=1
                     if(over_break_count>3):
