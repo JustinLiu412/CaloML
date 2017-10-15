@@ -7,14 +7,12 @@ from torch import cat
 
 execfile("loader.py")
 
-OutPath='HPO_26/'
+OutPath='test/'
 OutPath=os.getcwd()+'/'+OutPath
 
 def objective(params):
 # define the model
-    print params,
-    print objective.index_of_call
-    objective.index_of_call+=1
+    print params
     depth, width = params
     learning_rate=0.001
     decay_rate=0
@@ -81,6 +79,7 @@ def objective(params):
 
             running_loss += loss.data[0]
             if i % 20 == 19:
+                running_loss /= 20
                 print('[%d, %5d] loss: %.10f' %
                         (epoch + 1, i + 1, running_loss)),
 
@@ -93,6 +92,7 @@ def objective(params):
                     loss = criterion(outputs, labels)
                     val_loss += loss.data[0]
 
+                val_loss /= 20
                 print('    val loss: %.10f' %
                         (val_loss)),
 
@@ -201,28 +201,7 @@ def objective(params):
     return (1-(float(correct) / total))*100.0
 
 if __name__ == '__main__':
-    space=[(2,8),(128, 512)]
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    from skopt import gp_minimize
-    from skopt.plots import plot_convergence
-    from skopt.plots import plot_evaluations
-    from skopt.plots import plot_objective
+    depth=4
+    width=512
+    _ = objective((depth, width))
 
-    objective.index_of_call=0
-    res_gp = gp_minimize(objective, space, n_calls=20)
-    "Best score=%.4f" % res_gp.fun
-    print("""Best parameters:
-    - depth=%d
-    - width=%d""" % (res_gp.x[0], res_gp.x[1])) 
-
-    plot_convergence(res_gp)
-    plt.savefig(OutPath+'plot_convergence.pdf', format='pdf')
-
-    plt.set_cmap("viridis")
-    _ = plot_evaluations(res_gp)
-    plt.savefig(OutPath+'plot_evaluations.pdf', format='pdf')
-
-    _ = plot_objective(res_gp)
-    plt.savefig(OutPath+'plot_objective.pdf', format='pdf')
