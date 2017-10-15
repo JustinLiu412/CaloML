@@ -7,11 +7,14 @@ from torch import cat
 
 execfile("loader.py")
 
-OutPath='best/'
+OutPath='HPO_26/'
 OutPath=os.getcwd()+'/'+OutPath
 
 def objective(params):
 # define the model
+    print params,
+    print objective.index_of_call
+    objective.index_of_call+=1
     depth, width = params
     learning_rate=0.001
     decay_rate=0
@@ -55,15 +58,15 @@ def objective(params):
     loss_history = []
 
 
-    epoch_num=20
+    epoch_num=50
 
 
 # main process for training
     prev_val_loss = 0.0
     stag_break_count = 0
     over_break_count = 0
-    prev_epoch_end_val_loss = 0
-    epoch_end_val_loss = 0
+    prev_epoch_end_val_loss = 0.0
+    epoch_end_val_loss = 0.0
     for epoch in range(epoch_num):
         running_loss = 0.0
         break_flag = False
@@ -99,9 +102,9 @@ def objective(params):
                 relative_error = (val_loss-prev_val_loss)/float(val_loss)
                 print('    relative error: %.10f' %
                         (relative_error)),
-                if(relative_error>0.05):
+                if(relative_error>0.02 and epoch!=0):
                     over_break_count+=1
-                    if(over_break_count>3):
+                    if(over_break_count>2):
                         break_flag=True
                         break
                 else:
@@ -110,12 +113,12 @@ def objective(params):
                 print('    over break count: %d' %
                         (over_break_count))
 
-                if(i+1==200):
+                if(i+1==400):
                     epoch_end_val_loss = val_loss
                     epoch_end_relative_error = (epoch_end_val_loss-prev_epoch_end_val_loss)/float(epoch_end_val_loss)
                     print('    epoch_end_relative_error: %.10f' %
                             (epoch_end_relative_error)),
-                    if(epoch_end_relative_error > -0.01 and epoch!=0):
+                    if(epoch_end_relative_error > -0.005 and epoch!=0):
                         stag_break_count+=1
                         if(stag_break_count>0):
                             break_flag=True
@@ -198,7 +201,7 @@ def objective(params):
     return (1-(float(correct) / total))*100.0
 
 if __name__ == '__main__':
-    space=[(2,8),(64, 192)]
+    space=[(2,8),(128, 512)]
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -207,6 +210,7 @@ if __name__ == '__main__':
     from skopt.plots import plot_evaluations
     from skopt.plots import plot_objective
 
+    objective.index_of_call=0
     res_gp = gp_minimize(objective, space, n_calls=20)
     "Best score=%.4f" % res_gp.fun
     print("""Best parameters:
